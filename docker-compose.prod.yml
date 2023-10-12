@@ -1,0 +1,77 @@
+version: '3'
+
+# The only exposed service here is the actual app.
+# It's your call if you want to expose the other services to the host. However, make sure to use actual
+# env variables here if you choose to map the port to the host!!
+
+
+services:
+
+  redis:
+    env_file: igdb/.env
+    image: redis:latest
+    expose:
+      - 6379
+    environment:
+      ALLOW_EMPTY_PASSWORD: 'yes'
+
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
+    volumes:
+      - redis:/var/lib/redis
+
+    networks:
+      - app_network
+
+  igdb-sync:
+    build:
+      context: igdb
+      dockerfile: igdb/Dockerfile
+
+    depends_on:
+      - redis
+
+    env_file: igdb/.env
+
+    # Most of the env vars are loaded directly from .env, we only need to override some to make sure
+    # the docker resources are accessible.
+    environment:
+      SUPERTOKENS_CORE_URI: ${SUPERTOKENS_CORE_URI}
+      REDIS_URL: redis://redis:6379
+      SERVER_PORT: 9010
+
+    restart: always
+
+    command: ["yarn", "start"]
+
+    networks:
+      - app_network
+    volumes:
+      - igdb-sync:/usr/src/igdb-sync
+
+    deploy:
+      # Edit this to your liking.
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+    expose:
+      - "5000"
+
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.server.rule=Host(`${GAME_NODE_SERVER_HOSTNAME}`)'
+      - 'traefik.http.routers.server.entrypoints=websecure'
+      - 'traefik.http.services.server.loadbalancer.server.port=5000'
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  igdb-sync:
+  redis:
+
