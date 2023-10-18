@@ -89,21 +89,6 @@ We use TypeORM to handle everything related to database. You only need to run mi
 #### Important
 ALWAYS check your migrations before running them. Typeorm may sometimes drop important tables and columns.
 
-## IGDB
-IGDB is used to fetch game data.  
-It's mandatory to have a Twitch Developer account to use its services.  
-You can create one here: https://dev.twitch.tv/console/apps/create  
-
-Use the client id and secret to fill the IGDB parameters in your `.env` file.
-```dotenv
-TWITCH_CLIENT_ID=your_twitch_client_id
-TWITCH_CLIENT_SECRET=your_twitch_client_secret
-```
-
-The `IGDBAuthService` on the `igdb` module will fetch a new access token (which is a Bearer token) periodically, and store it in your Redis instance.  
-Make sure it's secure.
-
-
 ## Running the app
 
 ```bash
