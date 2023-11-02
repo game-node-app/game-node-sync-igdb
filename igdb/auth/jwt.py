@@ -37,8 +37,8 @@ class JwtService(metaclass=SingletonMeta):
 
     def get_jwt(self):
         token = self._get_jwt_from_cache()
-        print(token)
         if token is None:
             print("token is none")
             token = self._refresh_jwt()
+        print(token)
         return token

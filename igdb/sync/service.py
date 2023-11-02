@@ -103,9 +103,12 @@ class IGDBSyncService(metaclass=SingletonMeta):
             },
             "json": {"games": chunk},
         }
-        requests.post(
+
+        response = requests.post(
             **parameters,
         )
+        response.raise_for_status()
+        print(f"Sent chunk of {len(chunk)} games to queue at {datetime.utcnow()}")
 
     def send_games_to_queue(self, games: List[Dict]):
         jwt_token = self.__jwt_token_service.get_jwt()

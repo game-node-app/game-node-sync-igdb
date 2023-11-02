@@ -2,7 +2,7 @@ version: '3'
 
 
 services:
-  db:
+  sync-db:
     image: mysql:latest
     env_file:
       - stores/.env
@@ -24,7 +24,7 @@ services:
       timeout: 20s
       retries: 10
 
-  redis:
+  sync-redis:
     env_file: igdb-node/.env
     image: redis:latest
     expose:
@@ -43,13 +43,13 @@ services:
     networks:
       - game_node_app
 
-  igdb-sync:
+  sync-igdb:
     build:
       context: igdb
       dockerfile: Dockerfile
 
     depends_on:
-      - redis
+      - sync-redis
 
     env_file: igdb/.env
 
@@ -57,8 +57,8 @@ services:
     # the docker resources are accessible.
     environment:
       SUPERTOKENS_CORE_URI: http://supertokens:3567
-      DOMAIN_API: http://app:5000
-      REDIS_URL: redis://redis:6379
+      DOMAIN_API: http://server:5000
+      REDIS_URL: redis://sync-redis:6379
       SERVER_PORT: 9010
 
     restart: always

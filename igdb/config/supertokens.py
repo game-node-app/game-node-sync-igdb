@@ -5,8 +5,8 @@ import os
 init(
     app_info=InputAppInfo(
         app_name="GameNode",
-        api_domain="http://localhost:5000",
-        website_domain="http://localhost:3000",
+        api_domain=os.environ.get("DOMAIN_API", "http://localhost:5000"),
+        website_domain=os.environ.get("DOMAIN_WEBSITE", "http://localhost:3000"),
     ),
     supertokens_config=SupertokensConfig(
         connection_uri=os.environ.get(

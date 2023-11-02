@@ -2,7 +2,7 @@ version: '3'
 
 
 services:
-  db:
+  sync-db:
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -23,7 +23,7 @@ services:
       timeout: 20s
       retries: 10
 
-  redis:
+  sync-redis:
     image: redis:latest
     ports:
       - "9012:6379"
