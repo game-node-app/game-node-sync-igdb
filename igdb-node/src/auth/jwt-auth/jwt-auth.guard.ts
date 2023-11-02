@@ -10,21 +10,27 @@ import * as process from "process";
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+    private signingKey: jwksClient.SigningKey | undefined;
     constructor() {}
 
     /**
      * @param jwtHeader - JWT header, from the decoded token
-     * @param callback
      * @private
      */
     async getSigningKey(jwtHeader: JwtHeader) {
         const apiDomain = process.env.DOMAIN_API;
         const apiDomainBase = process.env.DOMAIN_API_BASE;
-        const client = jwksClient({
-            jwksUri: `{${apiDomain}${apiDomainBase}/jwt/jwks.json`,
-        });
-        const signingKey = await client.getSigningKey(jwtHeader.kid);
-        return signingKey.getPublicKey();
+        if (this.signingKey == undefined) {
+            const client = jwksClient({
+                jwksUri: `{${apiDomain}${apiDomainBase}/jwt/jwks.json`,
+            });
+            /**
+             * This will be persisted, since NestJS services are singletons.
+             */
+            this.signingKey = await client.getSigningKey(jwtHeader.kid);
+        }
+
+        return this.signingKey.getPublicKey();
     }
 
     /**

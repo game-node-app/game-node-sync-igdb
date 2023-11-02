@@ -1,18 +1,19 @@
-FROM node:18
+FROM python:3.8
+
+RUN apt-get update && apt-get -y install cron vim
+
 WORKDIR /app
 
-# Install dependencies
+COPY requirements.txt requirements.txt
 
-COPY package.json .
-COPY yarn.lock .
-RUN yarn install
+RUN pip install -r requirements.txt
 
-# Copy source code
+COPY crontab /etc/cron.d/crontab
+
+RUN chmod 0644 /etc/cron.d/crontab
+
+RUN /usr/bin/crontab /etc/cron.d/crontab
+
 COPY . .
 
-RUN rm -f .env
-
-# Build app
-RUN yarn build
-
-CMD yarn start
+RUN echo $PYTHONPATH

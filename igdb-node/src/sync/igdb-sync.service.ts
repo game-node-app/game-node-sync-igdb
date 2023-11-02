@@ -11,9 +11,9 @@ import {
 } from "../auth/config.interface";
 import { HttpService } from "@nestjs/axios";
 import { lastValueFrom } from "rxjs";
-import { Cron, SchedulerRegistry } from "@nestjs/schedule";
+import { Cron, SchedulerRegistry, Timeout } from "@nestjs/schedule";
 
-const IGDB_SYNC_CRONJOB_NAME = "igdb-sync";
+const IGDB_SYNC_CRONJOB_NAME = "igdb-node-sync";
 
 @Injectable()
 /**
@@ -34,6 +34,7 @@ export class IgdbSyncService {
         "aggregated_rating_count",
         "status",
         "summary",
+        "storyline",
         "url",
         "screenshots.*",
         "game_modes.*",
@@ -73,7 +74,9 @@ export class IgdbSyncService {
         private config: TSupertokensConfig,
     ) {
         this.logger.log("Created IGDB sync service instance");
-        this.start();
+        this.start()
+            .then()
+            .catch(() => {});
     }
 
     /**
@@ -93,15 +96,19 @@ export class IgdbSyncService {
      * Starts the IGDB sync process.
      * Fetches entries (with fetch()), handles errors with async-retry and sends results with to queue.
      */
-    @Cron("0 0 * * *")
+    @Cron("0 0 * * *", {
+        name: IGDB_SYNC_CRONJOB_NAME,
+        timeZone: "UTC",
+    })
     async start(): Promise<void> {
         this.logger.log("Starting IGDB sync at ", new Date().toISOString());
-        const syncCronjob = this.schedulerRegistry.getCronJob(
-            IGDB_SYNC_CRONJOB_NAME,
-        );
-
-        // Stops the cronjob to prevent it from running while we are fetching.
-        syncCronjob.stop();
+        try {
+            // Stops the cronjob to prevent it from running while we are fetching.
+            const syncCronjob = this.schedulerRegistry.getCronJob(
+                IGDB_SYNC_CRONJOB_NAME,
+            );
+            syncCronjob.stop();
+        } catch (e) {}
 
         let hasNextPage = true;
         let currentOffset = 0;
@@ -111,18 +118,26 @@ export class IgdbSyncService {
                     `Fetching results from offset ${currentOffset}`,
                 );
                 await retry(
-                    async () => {
-                        const results = await this.fetch(currentOffset);
-                        if (results.data.length === 0) {
+                    async (bail, attempt) => {
+                        const request = await this.fetch(currentOffset);
+                        const results = request.data;
+
+                        if (results.length === 0) {
                             hasNextPage = false;
                             return;
                         }
-                        await this.send(results.data);
-                        // Sends results to queue.
-                        currentOffset += this.itemsPerPage;
-                        hasNextPage = results.data.length >= this.itemsPerPage;
 
-                        await sleep(5000);
+                        // Avoid 413 errors by sending results in chunks
+                        const chunkSize = 10;
+                        for (let i = 0; i < results.length; i += chunkSize) {
+                            const chunk = results.slice(i, i + chunkSize);
+                            await this.send(chunk);
+                        }
+
+                        currentOffset += this.itemsPerPage;
+                        hasNextPage = results.length >= this.itemsPerPage;
+
+                        await sleep(1000);
                     },
                     {
                         retries: 3,
@@ -130,12 +145,13 @@ export class IgdbSyncService {
                             this.logger.error(
                                 `Error while fetching IGDB results:`,
                             );
-                            this.logger.error(err);
+                            console.log(err);
+
                             this.logger.error(
                                 `Retry attempts: ${attempt} of 3`,
                             );
                         },
-                        minTimeout: 10000,
+                        minTimeout: 30000,
                     },
                 );
             }
@@ -143,8 +159,13 @@ export class IgdbSyncService {
             this.logger.error(`Error while fetching IGDB results:`);
             this.logger.error(e);
         }
-        // Restarts the cronjob.
-        syncCronjob.start();
+
+        try {
+            const syncCronjob = this.schedulerRegistry.getCronJob(
+                IGDB_SYNC_CRONJOB_NAME,
+            );
+            syncCronjob.start();
+        } catch (e) {}
     }
 
     /**
@@ -157,7 +178,7 @@ export class IgdbSyncService {
         // Basic search parameters
         const search = igdbClient
             .fields(this.igdbSearchFields)
-            .limit(500)
+            .limit(this.itemsPerPage)
             .offset(offset);
 
         const results = await search.request("/games");
@@ -173,7 +194,7 @@ export class IgdbSyncService {
         const jwtToken = await this.jwtAuthService.getJwtToken();
         const res = await lastValueFrom(
             this.httpService.post(
-                `${this.config.appInfo.apiDomain}/v1/game-queue/sync`,
+                `${this.config.appInfo.apiDomain}/v1/game/queue`,
                 {
                     games: results,
                 },

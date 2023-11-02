@@ -1,14 +1,31 @@
 version: '3'
 
-# The only exposed service here is the actual app.
-# It's your call if you want to expose the other services to the host. However, make sure to use actual
-# env variables here if you choose to map the port to the host!!
-
 
 services:
+  db:
+    image: mysql:latest
+    env_file:
+      - stores/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: game_node_sync
+
+    expose:
+      - 3306
+    networks:
+      - game_node_app
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
 
   redis:
-    env_file: igdb/.env
+    env_file: igdb-node/.env
     image: redis:latest
     expose:
       - 6379
@@ -24,12 +41,12 @@ services:
       - redis:/var/lib/redis
 
     networks:
-      - app_network
+      - game_node_app
 
   igdb-sync:
     build:
       context: igdb
-      dockerfile: igdb/Dockerfile
+      dockerfile: Dockerfile
 
     depends_on:
       - redis
@@ -39,39 +56,27 @@ services:
     # Most of the env vars are loaded directly from .env, we only need to override some to make sure
     # the docker resources are accessible.
     environment:
-      SUPERTOKENS_CORE_URI: ${SUPERTOKENS_CORE_URI}
+      SUPERTOKENS_CORE_URI: http://supertokens:3567
+      DOMAIN_API: http://app:5000
       REDIS_URL: redis://redis:6379
       SERVER_PORT: 9010
 
     restart: always
 
-    command: ["yarn", "start"]
+    command: ["cron", "-f"]
 
     networks:
-      - app_network
+      - game_node_app
     volumes:
-      - igdb-sync:/usr/src/igdb-sync
+      - igdb-sync:/usr/src/igdb-node-sync
 
-    deploy:
-      # Edit this to your liking.
-      replicas: 3
-      restart_policy:
-        condition: on-failure
-
-    expose:
-      - "5000"
-
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.server.rule=Host(`${GAME_NODE_SERVER_HOSTNAME}`)'
-      - 'traefik.http.routers.server.entrypoints=websecure'
-      - 'traefik.http.services.server.loadbalancer.server.port=5000'
 
 networks:
-  app_network:
-    driver: bridge
+  game_node_app:
+    external: true
 
 volumes:
   igdb-sync:
   redis:
+  db:
 

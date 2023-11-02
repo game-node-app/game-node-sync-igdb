@@ -33,7 +33,6 @@ export class JwtAuthService {
     public async getJwtToken(): Promise<string> {
         const possibleJwtToken = await this.getKeyFromCache();
         if (possibleJwtToken) {
-            console.log("Using cached JWT token");
             return possibleJwtToken;
         }
 

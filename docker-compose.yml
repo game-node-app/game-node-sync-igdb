@@ -1,15 +1,32 @@
 version: '3'
 
-# The only exposed service here is the actual app.
-# It's your call if you want to expose the other services to the host. However, make sure to use actual
-# env variables here if you choose to map the port to the host!!
-
 
 services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: gamenode
+      MYSQL_PASSWORD: gamenode
+      MYSQL_DATABASE: game_node_sync
+
+    ports:
+      - "9011:3306"
+    networks:
+      - game_node_app
+    restart: no
+    volumes:
+      - db:/var/lib/mysql
+
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
   redis:
     image: redis:latest
     ports:
-      - "9011:6379"
+      - "9012:6379"
     environment:
       ALLOW_EMPTY_PASSWORD: 'yes'
 
@@ -22,13 +39,14 @@ services:
       - redis:/data
 
     networks:
-      - app_network
+      - game_node_app
 
 
 networks:
-  app_network:
-    driver: bridge
+  game_node_app:
+    external: true
 
 volumes:
   redis:
+  db:
 
