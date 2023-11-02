@@ -89,7 +89,7 @@ class IGDBSyncService(metaclass=SingletonMeta):
         while has_next_page:
             response = self.fetch_games_interval(current_offset)
             current_offset += ITEMS_PER_PAGE
-            has_next_page = len(response) > 0
+            has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
             yield response
 
     def __send_chunk_to_queue(self, chunk: List[Dict], jwt_token: str):
