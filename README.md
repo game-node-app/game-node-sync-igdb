@@ -10,7 +10,8 @@ You start to notice that NestJS's domain-based modularity (while excellent) is n
 This is a list of all services/scripts currently available, with a brief description of their usage.
 
 ### IGDB
-This is the simplest and most important service in our infrastructure. The GameNode's Games, which are the building blocks of every other system, are actually fetched from the Twitch's IGDB API.
-It's a 'simple' Python script that handles authentication and fetching of IGDB entries. Currently, the main API is responsible for validating and parsing said data, but we think it's better that we move it here somewhere down the line.
+This is the simplest and most important service in our infrastructure. The GameNode's games, which are the building blocks of every other system, are actually fetched from the Twitch's IGDB API.  
+This is a 'simple' Python script that handles authentication and fetching of IGDB entries.  
+Currently, the main API is responsible for validating and parsing said data, but we think it's better that we move it here somewhere down the line.
 
 
