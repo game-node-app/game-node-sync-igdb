@@ -46,6 +46,7 @@ IGDB_FIELDS = [
     "involved_companies.company.*",
     "involved_companies.company.logo.*",
     "game_engines.*",
+    "game_engines.platforms.*",
     "game_engines.companies.*",
     "game_engines.companies.logo.*",
     "cover.*",
