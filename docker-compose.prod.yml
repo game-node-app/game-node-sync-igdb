@@ -2,33 +2,10 @@ version: '3'
 
 
 services:
-  sync-db:
-    image: mysql:latest
-    env_file:
-      - stores/.env
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: game_node_sync
-
-    expose:
-      - 3306
-    networks:
-      - game_node_app
-    restart: always
-    volumes:
-      - db:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
-
-  sync-redis:
-    env_file: igdb-node/.env
+  redis:
+    hostname: sync-redis
     image: redis:latest
-    expose:
-      - 6379
+
     environment:
       ALLOW_EMPTY_PASSWORD: 'yes'
 
@@ -43,23 +20,20 @@ services:
     networks:
       - game_node_app
 
-  sync-igdb:
-    build:
-      context: igdb
-      dockerfile: Dockerfile
+  igdb:
+    hostname: sync-igdb
+    image: lamarcke/game-node-sync-igdb:latest
 
     depends_on:
-      - sync-redis
+      - redis
 
-    env_file: igdb/.env
-
-    # Most of the env vars are loaded directly from .env, we only need to override some to make sure
-    # the docker resources are accessible.
     environment:
       SUPERTOKENS_CORE_URI: http://supertokens:3567
       DOMAIN_API: http://server:5000
+      DOMAIN_API_BASE: /v1/auth
       REDIS_URL: redis://sync-redis:6379
-      SERVER_PORT: 9010
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
 
     restart: always
 
@@ -73,6 +47,7 @@ services:
 
 networks:
   game_node_app:
+    #driver: overlay
     external: true
 
 volumes:
