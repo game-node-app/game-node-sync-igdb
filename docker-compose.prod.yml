@@ -29,7 +29,7 @@ services:
 
     environment:
       SUPERTOKENS_CORE_URI: http://supertokens:3567
-      DOMAIN_API: http://server:5000
+      DOMAIN_API: https://server.gamenode.com
       DOMAIN_API_BASE: /v1/auth
       REDIS_URL: redis://sync-redis:6379
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
