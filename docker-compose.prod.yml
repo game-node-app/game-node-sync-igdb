@@ -1,0 +1,57 @@
+version: '3'
+
+
+services:
+  redis:
+    hostname: sync-redis
+    image: redis:latest
+
+    environment:
+      ALLOW_EMPTY_PASSWORD: 'yes'
+
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
+    volumes:
+      - redis:/var/lib/redis
+
+    networks:
+      - game_node_app
+
+  igdb:
+    hostname: sync-igdb
+    image: lamarcke/game-node-sync-igdb:latest
+
+    depends_on:
+      - redis
+
+    environment:
+      SUPERTOKENS_CORE_URI: http://supertokens:3567
+      DOMAIN_API: https://server.gamenode.app
+      DOMAIN_API_BASE: /v1/auth
+      REDIS_URL: redis://sync-redis:6379
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+
+    restart: always
+
+    command: ["cron", "-f"]
+
+    networks:
+      - game_node_app
+    volumes:
+      - igdb-sync:/usr/src/igdb-node-sync
+
+
+networks:
+  game_node_app:
+    #driver: overlay
+    external: true
+
+volumes:
+  igdb-sync:
+  redis:
+  db:
+

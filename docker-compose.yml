@@ -1,0 +1,31 @@
+version: '3'
+
+
+services:
+  sync-redis:
+    image: redis:latest
+    ports:
+      - "9012:6379"
+    environment:
+      ALLOW_EMPTY_PASSWORD: 'yes'
+
+    restart: no
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
+    volumes:
+      - redis:/data
+
+    networks:
+      - game_node_app
+
+
+networks:
+  game_node_app:
+    external: true
+
+volumes:
+  redis:
+  db:
+
