@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import contextmanager
 from typing import Union
@@ -19,8 +20,7 @@ def get_redis_connection() -> Redis:
         redis_client.ping()
         yield redis_client
     except Exception as e:
-        print("Redis connection failed")
-        print(e)
+        logging.error(e)
 
     finally:
         redis_client.close()

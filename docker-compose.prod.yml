@@ -37,12 +37,10 @@ services:
 
     restart: always
 
-    command: ["cron", "-f"]
+    command: ["python3", "main.py"]
 
     networks:
       - game_node_app
-    volumes:
-      - igdb-sync:/usr/src/igdb-node-sync
 
 
 networks:
@@ -51,7 +49,6 @@ networks:
     external: true
 
 volumes:
-  igdb-sync:
   redis:
   db:
 

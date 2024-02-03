@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "igdb"
+name = "game-node-igdb-sync"
 version = "0.1.0"
 description = "The IGDB sync service for GameNode."
 authors = ["Lamarcke <cassiolamarcksilvafreitas@gmail.com>"]
