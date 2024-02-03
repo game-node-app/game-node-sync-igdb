@@ -9,6 +9,7 @@ LOOP_ERROR_WAIT_TIME = 360
 
 RUN_WAIT_TIME = 8
 
+
 def run():
     sync_s = IGDBSyncService()
     for games in sync_s.fetch_games():
