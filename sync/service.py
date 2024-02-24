@@ -103,7 +103,7 @@ class IGDBSyncService(metaclass=SingletonMeta):
 
     def __send_chunk_to_queue(self, chunk: List[Dict], jwt_token: str):
         api_domain = os.environ.get("DOMAIN_API")
-        queue_path = f"{api_domain}/v1/game/queue"
+        queue_path = f"{api_domain}/v1/sync/igdb"
         parameters = {
             "url": queue_path,
             "headers": {
@@ -123,7 +123,7 @@ class IGDBSyncService(metaclass=SingletonMeta):
         jwt_token = self.__jwt_token_service.get_jwt()
         # Split games into chunks of 10, to avoid overloading the queue
         chunk_size = 10
-        chunks = [games[i : i + chunk_size] for i in range(0, len(games), chunk_size)]
+        chunks = [games[i: i + chunk_size] for i in range(0, len(games), chunk_size)]
         for chunk in chunks:
             try:
                 self.__send_chunk_to_queue(chunk, jwt_token)

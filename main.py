@@ -18,8 +18,8 @@ def run():
 
 
 if __name__ == "__main__":
-    # Homemade cronjob
-    # Used while I figure out why crontab -f is not working :)
+    # Homemade cronjob, works until it doesn't
+    # Use while I figure out why crontab -f is not working :)
     while True:
         try:
             run()
