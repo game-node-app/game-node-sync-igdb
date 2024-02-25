@@ -113,7 +113,7 @@ class IGDBSyncService(metaclass=SingletonMeta):
 
     def __send_chunk_to_queue(self, chunk: List[Dict], jwt_token: str):
         api_domain = os.environ.get("DOMAIN_API")
-        queue_path = f"{api_domain}/v1/game/queue"
+        queue_path = f"{api_domain}/v1/sync/igdb"
         parameters = {
             "url": queue_path,
             "headers": {
