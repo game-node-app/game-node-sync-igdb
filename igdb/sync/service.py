@@ -65,6 +65,8 @@ ITEMS_PER_PAGE = 500
 
 IGDB_GAMES_ENDPOINT = "https://api.igdb.com/v4/games"
 
+LAST_USED_OFFSET = None
+
 
 class IGDBSyncService(metaclass=SingletonMeta):
     __igdb_auth_service = IGDBAuthService()
@@ -95,9 +97,17 @@ class IGDBSyncService(metaclass=SingletonMeta):
     def fetch_games(self):
         has_next_page = True
         current_offset = 0
+        # Fallback to return to previous attempt when errors occur
+        global LAST_USED_OFFSET
+        if LAST_USED_OFFSET is not None:
+            current_offset = LAST_USED_OFFSET
+        if not has_next_page:
+            LAST_USED_OFFSET = None
+
         while has_next_page:
             response = self.fetch_games_interval(current_offset)
             current_offset += ITEMS_PER_PAGE
+            LAST_USED_OFFSET = current_offset
             has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
             yield response
 
@@ -123,7 +133,7 @@ class IGDBSyncService(metaclass=SingletonMeta):
         jwt_token = self.__jwt_token_service.get_jwt()
         # Split games into chunks of 10, to avoid overloading the queue
         chunk_size = 10
-        chunks = [games[i : i + chunk_size] for i in range(0, len(games), chunk_size)]
+        chunks = [games[i: i + chunk_size] for i in range(0, len(games), chunk_size)]
         for chunk in chunks:
             try:
                 self.__send_chunk_to_queue(chunk, jwt_token)

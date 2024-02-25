@@ -1,6 +1,6 @@
 import logging
 
-from sync import IGDBSyncService
+from igdb.sync import IGDBSyncService
 from time import sleep
 
 # 12 hours
@@ -9,6 +9,7 @@ LOOP_ERROR_WAIT_TIME = 360
 
 RUN_WAIT_TIME = 8
 
+LAST_USED_OFFSET = None
 
 def run():
     sync_s = IGDBSyncService()
