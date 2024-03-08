@@ -1,12 +1,11 @@
-from sync import IGDBSyncService
-from time import sleep
+from config.rabbitmq import get_pika
+import pika
 
 
 def run():
-    sync_s = IGDBSyncService()
-    for games in sync_s.fetch_games():
-        sync_s.send_games_to_queue(games)
-        sleep(8)
+    with get_pika() as pika:
+        pika.confirm_delivery()
+        pika.basic_publish(exchange="sync", routing_key="igdb-sync", body="Hello from IGDB!")
 
 
 if __name__ == "__main__":
