@@ -3,7 +3,7 @@ version: '3'
 
 services:
   redis:
-    hostname: sync-redis
+    hostname: sync-igdb-redis
     image: redis:latest
 
     environment:
@@ -28,10 +28,11 @@ services:
       - redis
 
     environment:
-      SUPERTOKENS_CORE_URI: http://supertokens:3567
-      DOMAIN_API: https://server.gamenode.app
-      DOMAIN_API_BASE: /v1/auth
-      REDIS_URL: redis://sync-redis:6379
+      REDIS_URL: redis://sync-igdb-redis:6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
       TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
 
@@ -49,5 +50,4 @@ networks:
 
 volumes:
   redis:
-  db:
 

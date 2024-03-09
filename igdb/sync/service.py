@@ -3,11 +3,10 @@ from datetime import datetime
 from typing import Dict, List
 
 from dotenv import load_dotenv
-from requests.structures import CaseInsensitiveDict
 from retry import retry
 
-from auth import IGDBAuthService, JwtService
-from config import SingletonMeta
+from igdb.auth import IGDBAuthService
+from igdb.config import SingletonMeta
 import requests
 
 load_dotenv()
@@ -70,7 +69,6 @@ LAST_USED_OFFSET = None
 
 class IGDBSyncService(metaclass=SingletonMeta):
     __igdb_auth_service = IGDBAuthService()
-    __jwt_token_service = JwtService()
 
     def __init__(self):
         pass
@@ -101,44 +99,12 @@ class IGDBSyncService(metaclass=SingletonMeta):
         global LAST_USED_OFFSET
         if LAST_USED_OFFSET is not None:
             current_offset = LAST_USED_OFFSET
-        if not has_next_page:
-            LAST_USED_OFFSET = None
 
         while has_next_page:
             response = self.fetch_games_interval(current_offset)
             current_offset += ITEMS_PER_PAGE
             LAST_USED_OFFSET = current_offset
             has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
+            if not has_next_page:
+                LAST_USED_OFFSET = None
             yield response
-
-    def __send_chunk_to_queue(self, chunk: List[Dict], jwt_token: str):
-        api_domain = os.environ.get("DOMAIN_API")
-        queue_path = f"{api_domain}/v1/sync/igdb"
-        parameters = {
-            "url": queue_path,
-            "headers": {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {jwt_token}",
-            },
-            "json": {"games": chunk},
-        }
-
-        response = requests.post(
-            **parameters,
-        )
-        response.raise_for_status()
-        print(f"Sent chunk of {len(chunk)} games to queue at {datetime.utcnow()}")
-
-    def send_games_to_queue(self, games: List[Dict]):
-        jwt_token = self.__jwt_token_service.get_jwt()
-        # Split games into chunks of 10, to avoid overloading the queue
-        chunk_size = 10
-        chunks = [games[i: i + chunk_size] for i in range(0, len(games), chunk_size)]
-        for chunk in chunks:
-            try:
-                self.__send_chunk_to_queue(chunk, jwt_token)
-            except Exception as e:
-                print(f"Failed to send chunk to queue: {e}")
-                continue
-
-        print(f"Sent {len(games)} games to queue at {datetime.utcnow()}")
