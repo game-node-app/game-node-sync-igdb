@@ -1,30 +1,35 @@
-import logging
-
+from igdb.config import get_pika
 from igdb.sync import IGDBSyncService
 from time import sleep
 
+import json
+import logging
+
 # 12 hours
 LOOP_WAIT_TIME = 43200
+# 5 minutes
 LOOP_ERROR_WAIT_TIME = 360
+RUN_WAIT_TIME = 16
 
-RUN_WAIT_TIME = 8
-
-LAST_USED_OFFSET = None
 
 def run():
-    sync_s = IGDBSyncService()
-    for games in sync_s.fetch_games():
-        sync_s.send_games_to_queue(games)
-        sleep(RUN_WAIT_TIME)
+    sync_service = IGDBSyncService()
+    with get_pika() as pika:
+        for games in sync_service.fetch_games():
+            pika.basic_publish(exchange="sync", routing_key="sync-igdb", body=json.dumps(games))
+            logging.info(f"Successfully sent {len(games)} games to RabbitMQ queue.")
+            sleep(RUN_WAIT_TIME)
 
 
 if __name__ == "__main__":
     # Homemade cronjob, works until it doesn't
-    # Use while I figure out why crontab -f is not working :)
+    # igdb-sync doesn't check for listeners, so make sure some service is listening to these messages.
     while True:
         try:
             run()
             sleep(LOOP_WAIT_TIME)
+        except KeyboardInterrupt:
+            exit(0)
         except Exception as e:
             logging.error(e)
             sleep(LOOP_ERROR_WAIT_TIME)

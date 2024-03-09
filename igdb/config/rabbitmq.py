@@ -1,11 +1,19 @@
 from contextlib import contextmanager
 from typing import Union
+import os
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 
 connection = None
 channel: Union[BlockingChannel, None] = None
+
+def _get_connection_parameters():
+    host = os.environ.get("RABBITMQ_HOST")
+    port = os.environ.get("RABBITMQ_PORT")
+    username = os.environ.get("RABBITMQ_USERNAME")
+    password = os.environ.get("RABBITMQ_PASSWORD")
+    return pika.ConnectionParameters(host=host, port=port, credentials=pika.PlainCredentials(username=username, password=password))
 
 @contextmanager
 def get_pika():
@@ -14,7 +22,7 @@ def get_pika():
     try:
         if channel and channel.is_open:
             yield channel
-        conn_params = pika.ConnectionParameters(host='localhost', port=5672, credentials=pika.PlainCredentials(username="gamenode", password="gamenode"))
+        conn_params = _get_connection_parameters()
         connection = pika.BlockingConnection(conn_params)
         channel = connection.channel()
         yield channel

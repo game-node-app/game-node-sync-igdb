@@ -1,11 +1,11 @@
 import os
 from datetime import datetime
 
-from config import SingletonMeta, get_redis_connection
+from igdb.config import SingletonMeta, get_redis_connection
 import requests
 import asyncio
 
-from interface.igdb_token_response import IGDBTokenResponse
+from igdb.interface.igdb_token_response import IGDBTokenResponse
 
 
 class IGDBAuthService(metaclass=SingletonMeta):
