@@ -16,8 +16,8 @@ def run():
     sync_service = IGDBSyncService()
     with get_pika() as pika:
         for games in sync_service.fetch_games():
-            pika.basic_publish(exchange="sync", routing_key="sync-igdb", body=json.dumps(games))
-            logging.info(f"Successfully sent {len(games)} games to RabbitMQ queue.")
+            # pika.basic_publish(exchange="sync", routing_key="sync-igdb", body=json.dumps(games))
+            print(f"Successfully sent {len(games)} games to RabbitMQ queue.")
             sleep(RUN_WAIT_TIME)
 
 
@@ -31,5 +31,5 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             exit(0)
         except Exception as e:
-            logging.error(e)
+            print(e)
             sleep(LOOP_ERROR_WAIT_TIME)

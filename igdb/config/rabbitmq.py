@@ -28,14 +28,17 @@ def get_pika():
         yield channel
     except Exception as e:
         print(e)
-        if channel.is_open:
-            channel.close()
-        if connection.is_open:
-            connection.close()
+        if channel is not None:
+
+            if channel.is_open:
+                channel.close()
+            if connection.is_open:
+                connection.close()
 
     finally:
-        if channel.is_open:
-            channel.close()
-        if connection.is_open:
-            connection.close()
-    pass
+        if channel is not None:
+
+            if channel.is_open:
+                channel.close()
+            if connection.is_open:
+                connection.close()
