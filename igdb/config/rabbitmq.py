@@ -20,7 +20,7 @@ def get_pika():
     global connection
     global channel
     try:
-        if channel and channel.is_open:
+        if channel is not None and channel.is_open:
             yield channel
         conn_params = _get_connection_parameters()
         connection = pika.BlockingConnection(conn_params)
