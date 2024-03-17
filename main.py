@@ -5,10 +5,10 @@ from time import sleep
 import json
 import logging
 
-# 12 hours
-LOOP_WAIT_TIME = 43200
-# 5 minutes
-LOOP_ERROR_WAIT_TIME = 360
+# 24 hours
+LOOP_WAIT_TIME = 86400
+# 10 minutes
+LOOP_ERROR_WAIT_TIME = 720
 RUN_WAIT_TIME = 16
 
 
