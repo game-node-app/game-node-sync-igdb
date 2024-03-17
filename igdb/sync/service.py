@@ -8,6 +8,7 @@ from retry import retry
 from igdb.auth import IGDBAuthService
 from igdb.config import SingletonMeta
 import requests
+import logging
 
 load_dotenv()
 
@@ -101,10 +102,13 @@ class IGDBSyncService(metaclass=SingletonMeta):
             current_offset = LAST_USED_OFFSET
 
         while has_next_page:
+            logging.info(f"Current offset: {current_offset}")
             response = self.fetch_games_interval(current_offset)
+            logging.info(f"Fetched {len(response)} entries")
             current_offset += ITEMS_PER_PAGE
             LAST_USED_OFFSET = current_offset
             has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
             if not has_next_page:
+                logging.info(f"Detected last page of results at offset: {current_offset}")
                 LAST_USED_OFFSET = None
             yield response

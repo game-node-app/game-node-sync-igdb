@@ -38,7 +38,7 @@ services:
 
     restart: always
 
-    command: ["python3", "main.py"]
+    command: ["python3", "-u", "main.py"]
 
     networks:
       - game_node_app
