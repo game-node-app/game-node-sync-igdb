@@ -6,7 +6,7 @@ import json
 import logging
 
 # 48 hours
-LOOP_WAIT_TIME = 86400 * 2
+LOOP_WAIT_TIME = 86400 * 3
 # 10 minutes
 LOOP_ERROR_WAIT_TIME = 720
 RUN_WAIT_TIME = 16
