@@ -5,8 +5,8 @@ from time import sleep
 import json
 import logging
 
-# 24 hours
-LOOP_WAIT_TIME = 86400
+# 48 hours
+LOOP_WAIT_TIME = 86400 * 2
 # 10 minutes
 LOOP_ERROR_WAIT_TIME = 720
 RUN_WAIT_TIME = 16
