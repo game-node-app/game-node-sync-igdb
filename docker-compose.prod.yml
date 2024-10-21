@@ -22,11 +22,7 @@ services:
 
   igdb:
     hostname: sync-igdb
-#    image: lamarcke/game-node-sync-igdb:latest
-    build:
-      context: .
-    env_file:
-      - .env
+    image: lamarcke/game-node-sync-igdb:latest
 
     depends_on:
       - redis

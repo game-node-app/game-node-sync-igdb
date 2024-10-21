@@ -1,9 +1,10 @@
+import logging
+
 from igdb.config import get_pika
 from igdb.sync import IGDBSyncService
 from time import sleep
 
 import json
-import logging
 
 # 5 minutes
 LOOP_ERROR_WAIT_TIME = 300
@@ -28,9 +29,9 @@ if __name__ == "__main__":
     while True:
         try:
             run()
-
         except KeyboardInterrupt:
             exit(0)
         except Exception as e:
             print(e)
+            logging.error(e, exc_info=e, stack_info=True)
             sleep(LOOP_ERROR_WAIT_TIME)
