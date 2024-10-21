@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from retry import retry
 
 from igdb.auth import IGDBAuthService
-from igdb.config import SingletonMeta
+from igdb.config import SingletonMeta, get_redis_connection
 import requests
 import logging
 
@@ -59,20 +59,37 @@ IGDB_FIELDS = [
     "game_localizations.*",
     "language_supports.*",
     "first_release_date",
+    "age_ratings.*"
 ]
 
 ITEMS_PER_PAGE = 500
 
 IGDB_GAMES_ENDPOINT = "https://api.igdb.com/v4/games"
 
-LAST_USED_OFFSET = None
-
 
 class IGDBSyncService(metaclass=SingletonMeta):
     __igdb_auth_service = IGDBAuthService()
+    __offset_persist_key = "idgb-sync-offset"
 
     def __init__(self):
         pass
+
+    def __get_offset(self) -> int:
+        with get_redis_connection() as redis:
+            offset_item = redis.get(self.__offset_persist_key)
+            if isinstance(offset_item, bytes):
+                return int(offset_item.decode("utf-8"))
+            if isinstance(offset_item, str):
+                return int(offset_item)
+
+            return offset_item
+
+    def __save_offset(self, offset: int):
+        with get_redis_connection() as redis:
+            # 1800s = 30min
+            print(f"Saving new offset on store: {offset}")
+            redis.set(self.__offset_persist_key, offset, ex=1800)
+
 
     def __build_request_params(self, offset: int) -> Dict:
         auth_token = self.__igdb_auth_service.get_token()
@@ -96,19 +113,20 @@ class IGDBSyncService(metaclass=SingletonMeta):
     def fetch_games(self):
         has_next_page = True
         current_offset = 0
-        # Fallback to return to previous attempt when errors occur
-        global LAST_USED_OFFSET
-        if LAST_USED_OFFSET is not None:
-            current_offset = LAST_USED_OFFSET
+
+        last_used_offset = self.__get_offset()
+        if last_used_offset is not None:
+            print(f"Using offset from store: {last_used_offset}")
+            current_offset = last_used_offset
 
         while has_next_page:
             print(f"Current offset: {current_offset}")
+            self.__save_offset(current_offset)
             response = self.fetch_games_interval(current_offset)
             print(f"Fetched {len(response)} entries")
             current_offset += ITEMS_PER_PAGE
-            LAST_USED_OFFSET = current_offset
             has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
             if not has_next_page:
                 print(f"Detected last page of results at offset: {current_offset}")
-                LAST_USED_OFFSET = None
+                self.__save_offset(0)
             yield response

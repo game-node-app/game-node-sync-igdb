@@ -5,15 +5,16 @@ from time import sleep
 import json
 import logging
 
-# 7 days
-LOOP_WAIT_TIME = 86400 * 7
-# 10 minutes
-LOOP_ERROR_WAIT_TIME = 720
+# 5 minutes
+LOOP_ERROR_WAIT_TIME = 300
+# 16 seconds
 RUN_WAIT_TIME = 16
 
+sync_service = IGDBSyncService()
 
 def run():
-    sync_service = IGDBSyncService()
+    print(f"Starting IGDB sync job...")
+
     with get_pika() as pika:
         for games in sync_service.fetch_games():
             pika.basic_publish(exchange="sync", routing_key="sync-igdb", body=json.dumps(games))
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     while True:
         try:
             run()
-            sleep(LOOP_WAIT_TIME)
+
         except KeyboardInterrupt:
             exit(0)
         except Exception as e:

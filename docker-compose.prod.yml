@@ -22,7 +22,11 @@ services:
 
   igdb:
     hostname: sync-igdb
-    image: lamarcke/game-node-sync-igdb:latest
+#    image: lamarcke/game-node-sync-igdb:latest
+    build:
+      context: .
+    env_file:
+      - .env
 
     depends_on:
       - redis
@@ -38,7 +42,7 @@ services:
 
     restart: always
 
-    command: ["python3", "-u", "main.py"]
+    command: bash -c "printenv > /etc/environment && cron -f"
 
     networks:
       - game_node_app
