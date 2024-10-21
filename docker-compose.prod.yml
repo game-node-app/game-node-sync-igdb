@@ -38,7 +38,7 @@ services:
 
     restart: always
 
-    command: ["python3", "-u", "main.py"]
+    command: bash -c "printenv > /etc/environment && cron -f"
 
     networks:
       - game_node_app
