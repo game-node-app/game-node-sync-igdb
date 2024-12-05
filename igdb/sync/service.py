@@ -59,7 +59,8 @@ IGDB_FIELDS = [
     "game_localizations.*",
     "language_supports.*",
     "first_release_date",
-    "age_ratings.*"
+    "age_ratings.*",
+    "updated_at"
 ]
 
 ITEMS_PER_PAGE = 500
