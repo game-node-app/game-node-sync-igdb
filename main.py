@@ -1,8 +1,10 @@
 import logging
+import os
 
-from igdb.config import get_pika
+from igdb.auth.jwt import JWTService
 from igdb.sync import IGDBSyncService
 from time import sleep
+import requests
 
 import json
 
@@ -12,15 +14,18 @@ LOOP_ERROR_WAIT_TIME = 300
 RUN_WAIT_TIME = 16
 
 sync_service = IGDBSyncService()
+jwt_service = JWTService()
 
 def run():
     print(f"Starting IGDB sync job...")
+    jwt = jwt_service.get_jwt()
+    server_url = os.environ.get("SERVER_URI", "http://localhost:5000")
+    sync_url = f"{server_url}/v1/sync/igdb"
 
-    with get_pika() as pika:
-        for games in sync_service.fetch_games():
-            pika.basic_publish(exchange="sync", routing_key="sync-igdb", body=json.dumps(games))
-            print(f"Successfully sent {len(games)} games to RabbitMQ queue.")
-            sleep(RUN_WAIT_TIME)
+    for games in sync_service.fetch_games():
+        requests.post(sync_url, json=games, headers={"Authorization": f"Bearer {jwt}"})
+        print(f"Successfully sent {len(games)} games to server.")
+        sleep(RUN_WAIT_TIME)
 
 
 if __name__ == "__main__":
