@@ -55,6 +55,7 @@ IGDB_FIELDS = [
     "collections.type.*"
     "alternative_names.*",
     "external_games.*",
+    "external_games.platform.*"
     "franchises.*",
     "keywords.*",
     "game_localizations.*",
