@@ -51,7 +51,8 @@ IGDB_FIELDS = [
     "game_engines.companies.logo.*",
     "cover.*",
     "artworks.*",
-    "collection.*",
+    "collections.*",
+    "collections.type.*"
     "alternative_names.*",
     "external_games.*",
     "franchises.*",
