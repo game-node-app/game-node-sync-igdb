@@ -52,10 +52,8 @@ IGDB_FIELDS = [
     "cover.*",
     "artworks.*",
     "collections.*",
-    "collections.type.*"
     "alternative_names.*",
     "external_games.*",
-    "external_games.platform.*"
     "franchises.*",
     "keywords.*",
     "game_localizations.*",
@@ -127,9 +125,9 @@ class IGDBSyncService(metaclass=SingletonMeta):
             self.__save_offset(current_offset)
             response = self.fetch_games_interval(current_offset)
             print(f"Fetched {len(response)} entries")
-            current_offset += ITEMS_PER_PAGE
             has_next_page = len(response) > 0 and len(response) >= ITEMS_PER_PAGE
             if not has_next_page:
                 print(f"Detected last page of results at offset: {current_offset}")
                 self.__save_offset(0)
+            current_offset += ITEMS_PER_PAGE
             yield response
