@@ -5,6 +5,7 @@ description = "The IGDB sync service for GameNode."
 authors = ["Lamarcke <cassiolamarcksilvafreitas@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.8"
