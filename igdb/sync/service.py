@@ -12,6 +12,9 @@ import logging
 
 load_dotenv()
 
+# IMPORTANT:
+# DEPRECATED FIELDS MUST BE RETURNED EXPLICITLY
+# E.G. 'external_games.category'
 IGDB_FIELDS = [
     "id",
     "name",
@@ -20,6 +23,11 @@ IGDB_FIELDS = [
     "aggregated_rating",
     "aggregated_rating_count",
     "status",
+    "game_type",
+    "game_status",
+    "version_parent",
+    "version_title",
+    "parent_game",
     "summary",
     "storyline",
     "url",
@@ -36,12 +44,15 @@ IGDB_FIELDS = [
     "dlcs.id",
     "dlcs.name",
     "dlcs.slug",
+    "dlcs.checksum",
     "expansions.id",
     "expansions.name",
     "expansions.slug",
+    "expansions.checksum",
     "similar_games.id",
     "similar_games.name",
     "similar_games.slug",
+    "similar_games.checksum",
     "involved_companies.*",
     "involved_companies.company.*",
     "involved_companies.company.logo.*",
